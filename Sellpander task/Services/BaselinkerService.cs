@@ -19,10 +19,8 @@ public class BaselinkerService
     {
         _accessToken = accessToken;
     }
-
     public List<GetBaselinkerOrder> GetBaselinkerOrders()
     {
-
         var client = new RestClient("https://api.baselinker.com/connector.php");
         var request = new RestRequest("POST");
         request.AddHeader("X-BLToken", _accessToken);
@@ -47,7 +45,6 @@ public class BaselinkerService
             request.Parameters.RemoveParameter("date_confirmed_from");
             request.AddParameter("date_confirmed_from", dateConfirmedFrom);
         } while (orders.Count == 100);
-
         return orders;
     }
     public void AddBaselinkerOrders(List<FaireOrder> orders)
@@ -75,7 +72,6 @@ public class BaselinkerService
 
                 baselinkerProducts.Add(product);
             }
-
             var shippingAddress = new BaselinkerAddress
             {
                 DeliveryFullname = order.Address.Name,
@@ -88,7 +84,6 @@ public class BaselinkerService
                 DeliveryCountryCode = order.Address.CountryCode,
                 DeliveryCompany = order.Address.CompanyName
             };
-
             var baselinkerOrder = new BaselinkerOrder
             {
                 OrderSourceId = 1024,
@@ -103,14 +98,13 @@ public class BaselinkerService
             };
             baselinkerOrders.Add(baselinkerOrder);
         }
-
         var json = JsonConvert.SerializeObject(baselinkerOrders);
         request.AddParameter("orders", json);
         var response = client.Execute(request);
         var content = response.Content;
-        if (response.StatusCode != HttpStatusCode.OK || content.Contains("\"status\":\"ERROR\""))
+        if (response.StatusCode != HttpStatusCode.OK)
         {
-            throw new Exception("Nie udało się dodać zamówień do Baselinker: " + content);
+            throw new Exception($"Failed to post orders to Baselinker. Status code: {response.StatusCode}");
         }
     }
 }
